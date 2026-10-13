@@ -1,6 +1,9 @@
+
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+
+const API = "https://learning-platform-backend-x13o.onrender.com";
 
 function UploadMaterial() {
   const navigate = useNavigate();
@@ -15,14 +18,19 @@ function UploadMaterial() {
   const uploadFile = async (e) => {
     e.preventDefault();
 
-    if (!file) {
+    if (!title.trim() || !topic.trim() || !file) {
+      setMessage("Please enter the title, topic, and select a PDF.");
+      return;
+    }
+
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
       setMessage("Please select a PDF file.");
       return;
     }
 
     const data = new FormData();
-    data.append("title", title);
-    data.append("topic", topic);
+    data.append("title", title.trim());
+    data.append("topic", topic.trim());
     data.append("file", file);
 
     try {
@@ -31,19 +39,24 @@ function UploadMaterial() {
       setMaterialId(null);
 
       const response = await axios.post(
-        "http://localhost:8080/materials/upload",
+        `${API}/materials/upload`,
         data
       );
 
-      setMaterialId(response.data);
-      setMessage(`PDF uploaded successfully! Material ID: ${response.data}`);
+      const id = response.data;
+      setMaterialId(id);
+      setMessage(`PDF uploaded successfully! Material ID: ${id}`);
       setFile(null);
+      setTitle("");
+      setTopic("");
       e.target.reset();
     } catch (error) {
       setMessage(
         typeof error.response?.data === "string"
-          ? error.response.data
-          : "Upload failed. Check whether the backend is running."
+          ? `Upload failed: ${error.response.data}`
+          : error.response
+            ? `Upload failed with status ${error.response.status}.`
+            : "Cannot reach the deployed backend. Check Render and CORS."
       );
     } finally {
       setLoading(false);
@@ -58,18 +71,18 @@ function UploadMaterial() {
       setMessage("AI is generating questions. Please wait...");
 
       const response = await axios.post(
-        `http://localhost:8080/ai/generate-quiz/${materialId}`
+        `${API}/ai/generate-quiz/${materialId}`
       );
 
       setMessage(
-        `${response.data.message}. Questions generated: ${response.data.questionsGenerated}`
+        `${response.data.message || "Quiz generation completed"}. Questions generated: ${response.data.questionsGenerated ?? "Check quiz page"}`
       );
     } catch (error) {
       setMessage(
         typeof error.response?.data === "string"
           ? error.response.data
           : error.response?.data?.message ||
-            "Quiz generation failed. Please try again."
+            `Quiz generation failed${error.response ? ` (HTTP ${error.response.status})` : ". Check the backend connection."}`
       );
     } finally {
       setGenerating(false);
@@ -86,10 +99,7 @@ function UploadMaterial() {
         boxSizing: "border-box"
       }}
     >
-      <button
-        onClick={() => navigate("/dashboard")}
-        style={buttonStyle}
-      >
+      <button onClick={() => navigate("/dashboard")} style={buttonStyle}>
         Back to Dashboard
       </button>
 
@@ -107,13 +117,14 @@ function UploadMaterial() {
           Upload Learning PDF
         </h1>
 
-        <p style={{ textAlign: "center", color: "#667085", lineHeight: "1.6" }}>
+        <p style={{ textAlign: "center", color: "#667085", lineHeight: 1.6 }}>
           Upload study material and generate AI-powered quiz questions.
         </p>
 
         <form onSubmit={uploadFile}>
-          <label>Material Title</label>
+          <label htmlFor="title">Material Title</label>
           <input
+            id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Enter material title"
@@ -121,8 +132,9 @@ function UploadMaterial() {
             style={inputStyle}
           />
 
-          <label>Topic</label>
+          <label htmlFor="topic">Topic</label>
           <input
+            id="topic"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
             placeholder="Example: Operating Systems"
@@ -130,11 +142,12 @@ function UploadMaterial() {
             style={inputStyle}
           />
 
-          <label>Select PDF</label>
+          <label htmlFor="file">Select PDF</label>
           <input
+            id="file"
             type="file"
             accept=".pdf,application/pdf"
-            onChange={(e) => setFile(e.target.files[0] || null)}
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
             required
             style={inputStyle}
           />
@@ -142,7 +155,12 @@ function UploadMaterial() {
           <button
             type="submit"
             disabled={loading || generating}
-            style={{ ...buttonStyle, width: "100%", marginTop: "10px" }}
+            style={{
+              ...buttonStyle,
+              width: "100%",
+              marginTop: "10px",
+              opacity: loading || generating ? 0.6 : 1
+            }}
           >
             {loading ? "Uploading..." : "Upload PDF"}
           </button>
@@ -151,7 +169,7 @@ function UploadMaterial() {
         {materialId && (
           <button
             onClick={generateQuiz}
-            disabled={generating}
+            disabled={generating || loading}
             style={{
               ...buttonStyle,
               width: "100%",
@@ -165,13 +183,14 @@ function UploadMaterial() {
 
         {message && (
           <p
+            role="status"
             style={{
               marginTop: "20px",
               padding: "12px",
               borderRadius: "8px",
               background: "#f0f4fa",
               overflowWrap: "anywhere",
-              lineHeight: "1.5"
+              lineHeight: 1.5
             }}
           >
             {message}
