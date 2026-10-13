@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const API = "http://localhost:8080";
+const API = "https://learning-platform-backend-x13o.onrender.com";
 
 function Quiz() {
   const navigate = useNavigate();
