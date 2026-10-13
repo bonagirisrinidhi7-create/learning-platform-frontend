@@ -1,6 +1,9 @@
+
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+
+const API_URL = "https://YOUR-RENDER-BACKEND-URL";
 
 function Register() {
   const navigate = useNavigate();
@@ -10,27 +13,28 @@ function Register() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("LEARNER");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    if (!username || !email || !password) {
+    if (!username.trim() || !email.trim() || !password) {
       setMessage("Please fill all required fields");
       return;
     }
 
-    try {
-      const response = await axios.post(
-        "http://localhost:8080/register",
-        {
-          username,
-          email,
-          password,
-          role
-        }
-      );
+    setLoading(true);
+    setMessage("");
 
-      setMessage(response.data.message);
+    try {
+      const response = await axios.post(`${API_URL}/register`, {
+        username: username.trim(),
+        email: email.trim(),
+        password,
+        role
+      });
+
+      setMessage(response.data.message || "Registration successful");
 
       setUsername("");
       setEmail("");
@@ -40,17 +44,20 @@ function Register() {
       setTimeout(() => {
         navigate("/login");
       }, 1000);
-
     } catch (error) {
       if (error.response) {
         setMessage(
           typeof error.response.data === "string"
             ? error.response.data
-            : "Registration failed"
+            : error.response.data?.message || "Registration failed"
         );
       } else {
-        setMessage("Backend is not reachable");
+        setMessage(
+          "Cannot connect to the backend. Check the backend URL and Render service."
+        );
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -69,10 +76,12 @@ function Register() {
       <div
         style={{
           width: "420px",
+          maxWidth: "100%",
           background: "white",
           padding: "40px",
           borderRadius: "25px",
-          boxShadow: "0 20px 50px rgba(0,0,0,0.12)"
+          boxShadow: "0 20px 50px rgba(0,0,0,0.12)",
+          boxSizing: "border-box"
         }}
       >
         <h1
@@ -101,6 +110,7 @@ function Register() {
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            required
             style={{
               width: "100%",
               padding: "14px",
@@ -117,6 +127,7 @@ function Register() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
             style={{
               width: "100%",
               padding: "14px",
@@ -133,6 +144,7 @@ function Register() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
             style={{
               width: "100%",
               padding: "14px",
@@ -164,6 +176,7 @@ function Register() {
 
           <button
             type="submit"
+            disabled={loading}
             style={{
               width: "100%",
               padding: "14px",
@@ -173,21 +186,22 @@ function Register() {
               color: "white",
               fontSize: "16px",
               fontWeight: "600",
-              cursor: "pointer"
+              cursor: loading ? "not-allowed" : "pointer",
+              opacity: loading ? 0.7 : 1
             }}
           >
-            Register
+            {loading ? "Registering..." : "Register"}
           </button>
         </form>
 
         {message && (
           <p
+            role="status"
             style={{
               textAlign: "center",
               marginTop: "20px",
-              color: message === "Registration successful"
-                ? "green"
-                : "red"
+              color: message === "Registration successful" ? "green" : "red",
+              overflowWrap: "anywhere"
             }}
           >
             {message}
