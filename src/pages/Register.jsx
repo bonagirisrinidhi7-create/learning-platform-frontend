@@ -3,7 +3,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "https://YOUR-RENDER-BACKEND-URL";
+const API_URL = "https://YOUR-ACTUAL-RENDER-SERVICE.onrender.com";
 
 function Register() {
   const navigate = useNavigate();
@@ -41,24 +41,32 @@ function Register() {
       setPassword("");
       setRole("LEARNER");
 
-      setTimeout(() => {
-        navigate("/login");
-      }, 1000);
+      setTimeout(() => navigate("/login"), 1000);
     } catch (error) {
       if (error.response) {
         setMessage(
           typeof error.response.data === "string"
             ? error.response.data
-            : error.response.data?.message || "Registration failed"
+            : "Registration failed"
         );
       } else {
         setMessage(
-          "Cannot connect to the backend. Check the backend URL and Render service."
+          "Backend connection failed. Check your Render URL and backend status."
         );
       }
     } finally {
       setLoading(false);
     }
+  };
+
+  const inputStyle = {
+    width: "100%",
+    padding: "14px",
+    marginBottom: "15px",
+    borderRadius: "12px",
+    border: "1px solid #d0d5dd",
+    fontSize: "16px",
+    boxSizing: "border-box"
   };
 
   return (
@@ -84,23 +92,11 @@ function Register() {
           boxSizing: "border-box"
         }}
       >
-        <h1
-          style={{
-            textAlign: "center",
-            marginBottom: "10px",
-            color: "#172033"
-          }}
-        >
+        <h1 style={{ textAlign: "center", color: "#172033" }}>
           Create Account
         </h1>
 
-        <p
-          style={{
-            textAlign: "center",
-            color: "#667085",
-            marginBottom: "30px"
-          }}
-        >
+        <p style={{ textAlign: "center", color: "#667085", marginBottom: "30px" }}>
           Join your personalized learning platform
         </p>
 
@@ -110,16 +106,8 @@ function Register() {
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            style={inputStyle}
             required
-            style={{
-              width: "100%",
-              padding: "14px",
-              marginBottom: "15px",
-              borderRadius: "12px",
-              border: "1px solid #d0d5dd",
-              fontSize: "16px",
-              boxSizing: "border-box"
-            }}
           />
 
           <input
@@ -127,16 +115,8 @@ function Register() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            style={inputStyle}
             required
-            style={{
-              width: "100%",
-              padding: "14px",
-              marginBottom: "15px",
-              borderRadius: "12px",
-              border: "1px solid #d0d5dd",
-              fontSize: "16px",
-              boxSizing: "border-box"
-            }}
           />
 
           <input
@@ -144,31 +124,14 @@ function Register() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            style={inputStyle}
             required
-            style={{
-              width: "100%",
-              padding: "14px",
-              marginBottom: "15px",
-              borderRadius: "12px",
-              border: "1px solid #d0d5dd",
-              fontSize: "16px",
-              boxSizing: "border-box"
-            }}
           />
 
           <select
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "14px",
-              marginBottom: "20px",
-              borderRadius: "12px",
-              border: "1px solid #d0d5dd",
-              fontSize: "16px",
-              boxSizing: "border-box",
-              background: "white"
-            }}
+            style={{ ...inputStyle, background: "white" }}
           >
             <option value="LEARNER">Learner</option>
             <option value="TRAINER">Trainer</option>
@@ -186,8 +149,7 @@ function Register() {
               color: "white",
               fontSize: "16px",
               fontWeight: "600",
-              cursor: loading ? "not-allowed" : "pointer",
-              opacity: loading ? 0.7 : 1
+              cursor: loading ? "wait" : "pointer"
             }}
           >
             {loading ? "Registering..." : "Register"}
@@ -208,21 +170,11 @@ function Register() {
           </p>
         )}
 
-        <p
-          style={{
-            textAlign: "center",
-            marginTop: "25px",
-            color: "#667085"
-          }}
-        >
+        <p style={{ textAlign: "center", marginTop: "25px", color: "#667085" }}>
           Already have an account?{" "}
           <span
             onClick={() => navigate("/login")}
-            style={{
-              color: "#172033",
-              fontWeight: "600",
-              cursor: "pointer"
-            }}
+            style={{ color: "#172033", fontWeight: "600", cursor: "pointer" }}
           >
             Login
           </span>
