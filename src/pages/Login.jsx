@@ -19,12 +19,12 @@ function Login() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/login",
-        {
-          username,
-          password
-        }
-      );
+  "https://learning-platform-backend-x13o.onrender.com/login",
+  {
+    username,
+    password
+  }
+);
 
       localStorage.setItem("username", response.data.username);
       localStorage.setItem("email", response.data.email);
