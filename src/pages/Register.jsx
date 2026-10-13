@@ -3,7 +3,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "https://YOUR-ACTUAL-RENDER-SERVICE.onrender.com";
+const API_URL = "https://learning-platform-backend-x13o.onrender.com";
 
 function Register() {
   const navigate = useNavigate();
